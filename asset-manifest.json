@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/monitor-mania/static/css/main.4f2e6101.css",
+    "main.js": "/monitor-mania/static/js/main.941dcb8c.js",
+    "index.html": "/monitor-mania/index.html",
+    "main.4f2e6101.css.map": "/monitor-mania/static/css/main.4f2e6101.css.map",
+    "main.941dcb8c.js.map": "/monitor-mania/static/js/main.941dcb8c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4f2e6101.css",
+    "static/js/main.941dcb8c.js"
+  ]
+}
