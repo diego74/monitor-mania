@@ -2,8 +2,7 @@ import React from 'react';
 import { HashRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import CaregiverTest from './pages/CaregiverTest';
 import PatientTest from './pages/PatientTest';
-import Analysis from './pages/Analysis';
-import Reports from './pages/Reports';
+import AnalysisReports from './pages/AnalysisReports';
 import './styles/global.css';
 
 export default function App() {
@@ -33,17 +32,13 @@ export default function App() {
               <NavLink to="/analysis" className={({ isActive }) => isActive ? 'nav-btn active' : 'nav-btn'}>
                 📈 Análisis
               </NavLink>
-              <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-btn active' : 'nav-btn'}>
-                📋 Reportes
-              </NavLink>
             </nav>
             <main className="app-main">
               <Routes>
                 <Route path="/" element={<Navigate to="/caregiver" replace />} />
                 <Route path="/caregiver" element={<CaregiverTest />} />
                 <Route path="/patient" element={<PatientTest />} />
-                <Route path="/analysis" element={<Analysis />} />
-                <Route path="/reports" element={<Reports />} />
+                <Route path="/analysis" element={<AnalysisReports />} />
               </Routes>
             </main>
           </div>

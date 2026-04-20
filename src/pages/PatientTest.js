@@ -5,6 +5,8 @@ import { savePatient } from '../services/storage';
 export default function PatientTest() {
   const [responses, setResponses] = useState({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const total = patientQuestions.length;
   const answered = Object.keys(responses).length;
@@ -15,6 +17,8 @@ export default function PatientTest() {
   }
 
   async function handleSubmit() {
+    setSaving(true);
+    setError('');
     const now = new Date();
     const { overall } = calcSeverity(responses, patientQuestions);
     const data = {
@@ -23,9 +27,16 @@ export default function PatientTest() {
       severity: overall,
       ...Object.fromEntries(patientQuestions.map((q) => [q.id, responses[q.id] ?? null])),
     };
-    await savePatient(data);
-    setSaved(true);
-    setResponses({});
+    try {
+      await savePatient(data);
+      setSaved(true);
+      setResponses({});
+    } catch (err) {
+      console.error('Error guardando:', err);
+      setError('Error al guardar. Verificá la conexión.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -35,6 +46,9 @@ export default function PatientTest() {
 
         {saved && (
           <div className="alert alert-success">✓ Test guardado correctamente</div>
+        )}
+        {error && (
+          <div className="alert alert-error">{error}</div>
         )}
 
         {patientQuestions.map((q, idx) => (
@@ -61,10 +75,10 @@ export default function PatientTest() {
 
         <button
           className="submit-btn"
-          disabled={answered < total}
+          disabled={answered < total || saving}
           onClick={handleSubmit}
         >
-          ✓ Guardar Test
+          {saving ? 'Guardando...' : '✓ Guardar Test'}
         </button>
       </div>
     </div>
