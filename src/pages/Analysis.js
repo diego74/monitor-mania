@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
+import { Line, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  RadialLinearScale,
   PointElement,
   LineElement,
   Title,
@@ -20,7 +21,7 @@ import {
 } from '../data/questions';
 import { getAllCaregiver, getAllPatient } from '../services/storage';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const DIMS = ['distractibility', 'irritability', 'impulsivity', 'grandiosity', 'pressured_speech', 'flight_of_ideas', 'energy'];
 
@@ -31,11 +32,13 @@ export default function Analysis() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getAllCaregiver(), getAllPatient()]).then(([cg, pt]) => {
-      setCaregiverHistory(cg);
-      setPatientHistory(pt);
-      setLoading(false);
-    });
+    Promise.all([getAllCaregiver(), getAllPatient()])
+      .then(([cg, pt]) => {
+        setCaregiverHistory(cg);
+        setPatientHistory(pt);
+      })
+      .catch((err) => console.error('Firestore error:', err))
+      .finally(() => setLoading(false));
   }, []);
 
   const lastCG = caregiverHistory[caregiverHistory.length - 1];
@@ -93,7 +96,8 @@ export default function Analysis() {
 
         <div className="view-toggle">
           <button className={`view-btn${view === 'summary' ? ' active' : ''}`} onClick={() => setView('summary')}>Resumen</button>
-          <button className={`view-btn${view === 'graph' ? ' active' : ''}`} onClick={() => setView('graph')}>Gráfico</button>
+          <button className={`view-btn${view === 'radar' ? ' active' : ''}`} onClick={() => setView('radar')}>Radar</button>
+          <button className={`view-btn${view === 'graph' ? ' active' : ''}`} onClick={() => setView('graph')}>Historial</button>
         </div>
 
         {isEmpty && (
@@ -159,6 +163,45 @@ export default function Analysis() {
               })()}
             </div>
           </>
+        )}
+
+        {!isEmpty && view === 'radar' && cgScores && ptScores && (
+          <div style={{ height: 300 }}>
+            <Radar
+              data={{
+                labels: DIMS.map((d) => dimLabels[d]),
+                datasets: [
+                  {
+                    label: '👨‍⚕️ Tú',
+                    data: DIMS.map((d) => cgScores.byDimension[d] ?? 0),
+                    borderColor: '#2E5C9A',
+                    backgroundColor: 'rgba(46,92,154,0.2)',
+                    pointBackgroundColor: '#2E5C9A',
+                  },
+                  {
+                    label: '👩 Daniela',
+                    data: DIMS.map((d) => ptScores.byDimension[d] ?? 0),
+                    borderColor: '#d946ef',
+                    backgroundColor: 'rgba(217,70,239,0.2)',
+                    pointBackgroundColor: '#d946ef',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  r: {
+                    beginAtZero: true,
+                    max: 4,
+                    ticks: { stepSize: 1, font: { size: 9 } },
+                    pointLabels: { font: { size: 9 } },
+                  },
+                },
+                plugins: { legend: { labels: { font: { size: 11 } } } },
+              }}
+            />
+          </div>
         )}
 
         {!isEmpty && view === 'graph' && (

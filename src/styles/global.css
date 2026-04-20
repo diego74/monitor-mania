@@ -150,6 +150,7 @@ body {
 /* ─── Alert ──────────────────────────────────────────────────── */
 .alert { padding: 10px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
 .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
 
 /* ─── View Toggle ────────────────────────────────────────────── */
 .view-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }

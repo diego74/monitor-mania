@@ -5,6 +5,8 @@ import { saveCaregiver } from '../services/storage';
 export default function CaregiverTest() {
   const [responses, setResponses] = useState({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const total = caregiverQuestions.length;
   const answered = Object.keys(responses).length;
@@ -15,6 +17,8 @@ export default function CaregiverTest() {
   }
 
   async function handleSubmit() {
+    setSaving(true);
+    setError('');
     const now = new Date();
     const { overall } = calcSeverity(responses, caregiverQuestions);
     const data = {
@@ -23,9 +27,16 @@ export default function CaregiverTest() {
       severity: overall,
       ...Object.fromEntries(caregiverQuestions.map((q) => [q.id, responses[q.id] ?? null])),
     };
-    await saveCaregiver(data);
-    setSaved(true);
-    setResponses({});
+    try {
+      await saveCaregiver(data);
+      setSaved(true);
+      setResponses({});
+    } catch (err) {
+      console.error('Error guardando:', err);
+      setError('Error al guardar. Verificá la conexión.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -38,6 +49,9 @@ export default function CaregiverTest() {
 
         {saved && (
           <div className="alert alert-success">✓ Test guardado correctamente</div>
+        )}
+        {error && (
+          <div className="alert alert-error">{error}</div>
         )}
 
         {caregiverQuestions.map((q, idx) => (
@@ -64,10 +78,10 @@ export default function CaregiverTest() {
 
         <button
           className="submit-btn"
-          disabled={answered < total}
+          disabled={answered < total || saving}
           onClick={handleSubmit}
         >
-          ✓ Guardar Test
+          {saving ? 'Guardando...' : '✓ Guardar Test'}
         </button>
       </div>
     </div>

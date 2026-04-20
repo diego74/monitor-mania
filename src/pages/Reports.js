@@ -16,10 +16,15 @@ export default function Reports() {
 
   async function loadData() {
     setLoading(true);
-    const { caregiver: cg, patient: pt } = await getReport();
-    setCaregiver(cg);
-    setPatient(pt);
-    setLoading(false);
+    try {
+      const { caregiver: cg, patient: pt } = await getReport();
+      setCaregiver(cg);
+      setPatient(pt);
+    } catch (err) {
+      console.error('Firestore error:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function filterByDays(records) {
@@ -28,8 +33,18 @@ export default function Reports() {
     return records.filter((r) => new Date(r.timestamp) >= cutoff);
   }
 
-  const cgFiltered = filterByDays(caregiver);
-  const ptFiltered = filterByDays(patient);
+  function dedupeByDay(records) {
+    const byDay = {};
+    records.forEach((r) => {
+      if (!byDay[r.date] || r.timestamp > byDay[r.date].timestamp) {
+        byDay[r.date] = r;
+      }
+    });
+    return Object.values(byDay).sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  }
+
+  const cgFiltered = dedupeByDay(filterByDays(caregiver));
+  const ptFiltered = dedupeByDay(filterByDays(patient));
 
   function avgSeverity(records) {
     if (!records.length) return null;
