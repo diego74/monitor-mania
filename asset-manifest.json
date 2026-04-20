@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/monitor-mania/static/css/main.4f2e6101.css",
-    "main.js": "/monitor-mania/static/js/main.716db948.js",
+    "main.js": "/monitor-mania/static/js/main.60a7536d.js",
     "index.html": "/monitor-mania/index.html",
     "main.4f2e6101.css.map": "/monitor-mania/static/css/main.4f2e6101.css.map",
-    "main.716db948.js.map": "/monitor-mania/static/js/main.716db948.js.map"
+    "main.60a7536d.js.map": "/monitor-mania/static/js/main.60a7536d.js.map"
   },
   "entrypoints": [
     "static/css/main.4f2e6101.css",
-    "static/js/main.716db948.js"
+    "static/js/main.60a7536d.js"
   ]
 }
