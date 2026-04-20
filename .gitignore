@@ -83,3 +83,6 @@ junit.xml
 *.tgz
 *.bak
 *.tmp
+
+# Claude settings
+.claude/
