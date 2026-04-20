@@ -28,10 +28,14 @@ export default function Analysis() {
   const [caregiverHistory, setCaregiverHistory] = useState([]);
   const [patientHistory, setPatientHistory] = useState([]);
   const [view, setView] = useState('summary');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setCaregiverHistory(getAllCaregiver());
-    setPatientHistory(getAllPatient());
+    Promise.all([getAllCaregiver(), getAllPatient()]).then(([cg, pt]) => {
+      setCaregiverHistory(cg);
+      setPatientHistory(pt);
+      setLoading(false);
+    });
   }, []);
 
   const lastCG = caregiverHistory[caregiverHistory.length - 1];
@@ -79,6 +83,8 @@ export default function Analysis() {
   };
 
   const isEmpty = !lastCG && !lastPT;
+
+  if (loading) return <div className="page"><div className="card"><p style={{color:'#666',textAlign:'center'}}>Cargando...</p></div></div>;
 
   return (
     <div className="page">

@@ -14,7 +14,7 @@ export default function PatientTest() {
     setSaved(false);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const now = new Date();
     const { overall } = calcSeverity(responses, patientQuestions);
     const data = {
@@ -23,7 +23,7 @@ export default function PatientTest() {
       severity: overall,
       ...Object.fromEntries(patientQuestions.map((q) => [q.id, responses[q.id] ?? null])),
     };
-    savePatient(data);
+    await savePatient(data);
     setSaved(true);
     setResponses({});
   }
@@ -32,9 +32,6 @@ export default function PatientTest() {
     <div className="page">
       <div className="card">
         <h2>Test de Intereses y Personalidad</h2>
-        <div className="card-info">
-          Daniela responde estas preguntas. Ella no necesita saber que medimos síntomas.
-        </div>
 
         {saved && (
           <div className="alert alert-success">✓ Test guardado correctamente</div>

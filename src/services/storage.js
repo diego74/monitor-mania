@@ -1,67 +1,80 @@
-const KEYS = {
-  caregiver: 'maniaCaregiver',
-  patient: 'maniaPatient',
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  writeBatch,
+  doc,
+} from 'firebase/firestore';
+import { db } from './firebase';
+
+const COLS = {
+  caregiver: 'caregiver_tests',
+  patient: 'patient_tests',
 };
 
-function read(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key) || '[]');
-  } catch {
-    return [];
+async function getAll(col) {
+  const q = query(collection(db, col), orderBy('timestamp'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ _id: d.id, ...d.data() }));
+}
+
+async function getLast(col) {
+  const q = query(collection(db, col), orderBy('timestamp', 'desc'), limit(1));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { _id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+export async function saveCaregiver(data) {
+  await addDoc(collection(db, COLS.caregiver), data);
+}
+
+export async function getAllCaregiver() {
+  return getAll(COLS.caregiver);
+}
+
+export async function getLastCaregiver() {
+  return getLast(COLS.caregiver);
+}
+
+export async function savePatient(data) {
+  await addDoc(collection(db, COLS.patient), data);
+}
+
+export async function getAllPatient() {
+  return getAll(COLS.patient);
+}
+
+export async function getLastPatient() {
+  return getLast(COLS.patient);
+}
+
+export async function getReport() {
+  const [caregiver, patient] = await Promise.all([
+    getAll(COLS.caregiver),
+    getAll(COLS.patient),
+  ]);
+  return { caregiver, patient };
+}
+
+export async function deleteAll() {
+  const batch = writeBatch(db);
+  for (const col of Object.values(COLS)) {
+    const snap = await getDocs(collection(db, col));
+    snap.docs.forEach((d) => batch.delete(doc(db, col, d.id)));
   }
+  await batch.commit();
 }
 
-function write(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
-
-export function saveCaregiver(data) {
-  const history = read(KEYS.caregiver);
-  history.push(data);
-  write(KEYS.caregiver, history);
-}
-
-export function getAllCaregiver() {
-  return read(KEYS.caregiver);
-}
-
-export function getLastCaregiver() {
-  const history = read(KEYS.caregiver);
-  return history[history.length - 1] ?? null;
-}
-
-export function savePatient(data) {
-  const history = read(KEYS.patient);
-  history.push(data);
-  write(KEYS.patient, history);
-}
-
-export function getAllPatient() {
-  return read(KEYS.patient);
-}
-
-export function getLastPatient() {
-  const history = read(KEYS.patient);
-  return history[history.length - 1] ?? null;
-}
-
-export function getReport() {
-  return {
-    caregiver: read(KEYS.caregiver),
-    patient: read(KEYS.patient),
-  };
-}
-
-export function deleteAll() {
-  localStorage.removeItem(KEYS.caregiver);
-  localStorage.removeItem(KEYS.patient);
-}
-
-export function exportJSON() {
+export async function exportJSON() {
+  const { caregiver, patient } = await getReport();
   const data = {
     exportedAt: new Date().toISOString(),
-    caregiver: read(KEYS.caregiver),
-    patient: read(KEYS.patient),
+    caregiver,
+    patient,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);

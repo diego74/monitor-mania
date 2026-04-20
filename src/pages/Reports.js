@@ -8,15 +8,18 @@ export default function Reports() {
   const [filterDays, setFilterDays] = useState(30);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  function loadData() {
-    const { caregiver: cg, patient: pt } = getReport();
+  async function loadData() {
+    setLoading(true);
+    const { caregiver: cg, patient: pt } = await getReport();
     setCaregiver(cg);
     setPatient(pt);
+    setLoading(false);
   }
 
   function filterByDays(records) {
@@ -41,14 +44,14 @@ export default function Reports() {
     return { label: 'Bajando', icon: '↓', color: '#10b981' };
   }
 
-  function handleExport() {
-    exportJSON();
+  async function handleExport() {
+    await exportJSON();
     setMsg('Archivo descargado');
     setTimeout(() => setMsg(''), 3000);
   }
 
-  function handleDelete() {
-    deleteAll();
+  async function handleDelete() {
+    await deleteAll();
     setCaregiver([]);
     setPatient([]);
     setConfirmDelete(false);
@@ -60,6 +63,8 @@ export default function Reports() {
   const ptAvg = avgSeverity(ptFiltered);
   const cgTrend = trend(cgFiltered);
   const ptTrend = trend(ptFiltered);
+
+  if (loading) return <div className="page"><div className="card"><p style={{color:'#666',textAlign:'center'}}>Cargando...</p></div></div>;
 
   return (
     <div className="page">

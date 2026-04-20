@@ -14,7 +14,7 @@ export default function CaregiverTest() {
     setSaved(false);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const now = new Date();
     const { overall } = calcSeverity(responses, caregiverQuestions);
     const data = {
@@ -23,7 +23,7 @@ export default function CaregiverTest() {
       severity: overall,
       ...Object.fromEntries(caregiverQuestions.map((q) => [q.id, responses[q.id] ?? null])),
     };
-    saveCaregiver(data);
+    await saveCaregiver(data);
     setSaved(true);
     setResponses({});
   }
