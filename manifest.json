@@ -1,12 +1,12 @@
 {
-  "short_name": "Monitor Manía",
-  "name": "Monitor de Manía",
-  "description": "Seguimiento de síntomas maníacos con tests y análisis",
+  "short_name": "Monitor Bipolar",
+  "name": "Monitor Bipolar — Trastorno Bipolar",
+  "description": "Seguimiento del estado anímico para trastorno bipolar. Tests de manía y depresión, análisis y recursos.",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#2E5C9A",
-  "background_color": "#f0f4f8",
+  "theme_color": "#1a3a5c",
+  "background_color": "#f0f4f9",
   "icons": [
     {
       "src": "favicon.ico",
