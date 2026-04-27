@@ -1,0 +1,31 @@
+# Build artifacts
+build/
+node_modules/
+
+# Git
+.git/
+
+# Lock files (no modificar directamente)
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+.env.local
+
+# Código legacy (eliminado en refactor)
+src/pages/CaregiverTest.js
+src/pages/PatientTest.js
+src/pages/Analysis.js
+src/pages/Reports.js
+
+# Docs desactualizados
+INSTALL.md
+
+# CRA internals
+src/serviceWorkerRegistration.js
+src/reportWebVitals.js

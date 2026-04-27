@@ -1,49 +1,84 @@
 import React from 'react';
-import { HashRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import CaregiverTest from './pages/CaregiverTest';
-import PatientTest from './pages/PatientTest';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AppContext } from './contexts/AppContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useRole } from './hooks/useRole';
+import { AppShell } from './components/layout/AppShell';
+import Dashboard from './pages/Dashboard';
+import CaregiverPortal from './pages/CaregiverPortal';
+import { ManiaTestPatient } from './pages/ManiaTest';
+import MoodTest from './pages/MoodTest';
+import CompositeTest from './pages/CompositeTest';
+import QuestionAdmin from './pages/QuestionAdmin';
 import AnalysisReports from './pages/AnalysisReports';
+import Settings from './pages/Settings';
+import Tips from './pages/Tips';
+import Resources from './pages/Resources';
+import About from './pages/About';
 import './styles/global.css';
+
+function RoleProvider({ children }) {
+  const { role, patientId, token } = useRole();
+  return (
+    <AppContext.Provider value={{ role, patientId, patientName: 'Daniela', token }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+function AdminRoute() {
+  return <QuestionAdmin />;
+}
+
+// Patient link routes — /p/:token/mania or /p/:token/mood or /p/:token/composite
+function PatientRoutes() {
+  return (
+    <Routes>
+      <Route path="mania" element={<ManiaTestPatient />} />
+      <Route path="mood" element={<MoodTest />} />
+      <Route path="composite" element={<CompositeTest />} />
+      <Route path="*" element={<Navigate to="composite" replace />} />
+    </Routes>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <RoleProvider>
+      <AppShell>
+        <Routes>
+          {/* Caregiver routes */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/caregiver" element={<CaregiverPortal />} />
+          <Route path="/test/composite" element={<CompositeTest />} />
+          <Route path="/admin/questions" element={<AdminRoute />} />
+          <Route path="/analysis" element={<AnalysisReports />} />
+          <Route path="/settings" element={<Settings />} />
+
+          {/* Patient shareable routes */}
+          <Route path="/p/:token/*" element={<PatientRoutes />} />
+
+          {/* Shared info pages */}
+          <Route path="/tips" element={<Tips />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/about" element={<About />} />
+
+          {/* Legacy compatibility */}
+          <Route path="/mood" element={<Navigate to="/p/ZGFuaWVsYQ==/composite" replace />} />
+          <Route path="/patient" element={<Navigate to="/p/ZGFuaWVsYQ==/composite" replace />} />
+        </Routes>
+      </AppShell>
+    </RoleProvider>
+  );
+}
 
 export default function App() {
   return (
     <HashRouter>
-      <Routes>
-        <Route path="/mood" element={
-          <div className="app-shell">
-            <main className="app-main">
-              <PatientTest />
-            </main>
-          </div>
-        } />
-        <Route path="*" element={
-          <div className="app-shell">
-            <header className="app-header">
-              <h1>📊 Monitor de Manía</h1>
-              <p>Daniela</p>
-            </header>
-            <nav className="app-nav">
-              <NavLink to="/caregiver" className={({ isActive }) => isActive ? 'nav-btn active' : 'nav-btn'}>
-                👨‍⚕️ Tu Test
-              </NavLink>
-              <NavLink to="/patient" className={({ isActive }) => isActive ? 'nav-btn active' : 'nav-btn'}>
-                👩 Test Daniela
-              </NavLink>
-              <NavLink to="/analysis" className={({ isActive }) => isActive ? 'nav-btn active' : 'nav-btn'}>
-                📈 Análisis
-              </NavLink>
-            </nav>
-            <main className="app-main">
-              <Routes>
-                <Route path="/" element={<Navigate to="/caregiver" replace />} />
-                <Route path="/caregiver" element={<CaregiverTest />} />
-                <Route path="/patient" element={<PatientTest />} />
-                <Route path="/analysis" element={<AnalysisReports />} />
-              </Routes>
-            </main>
-          </div>
-        } />
-      </Routes>
+      <ThemeProvider>
+        <AppRoutes />
+      </ThemeProvider>
     </HashRouter>
   );
 }

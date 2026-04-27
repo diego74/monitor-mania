@@ -41,21 +41,31 @@ export const dimLabels = {
 // score: 0 = sin síntomas, 4 = máxima severidad
 // reversed: la primera opción es la mejor (score 0 → 4 normal)
 //           con reversed: true, la primera opción es la peor → se invierte
+// multiplier: peso relativo de la pregunta en su dimensión (default 1.0)
+// answerMultipliers: amplificador por índice de respuesta (default [1,1,1,1,1])
 export function calcSeverity(responses, questions) {
   const maxIdx = 4;
-  const scores = {};
+  const buckets = {}; // { [measures]: { sum, totalWeight } }
+
   questions.forEach((q) => {
-    if (responses[q.id] !== undefined) {
-      const raw = responses[q.id];
-      const score = q.reversed ? maxIdx - raw : raw;
-      if (!scores[q.measures]) scores[q.measures] = [];
-      scores[q.measures].push(score);
-    }
+    if (responses[q.id] === undefined) return;
+    const raw = responses[q.id];
+    const baseScore = q.reversed ? maxIdx - raw : raw;
+    const answerMult = (q.answerMultipliers ?? [1, 1, 1, 1, 1])[raw] ?? 1;
+    const qWeight = q.multiplier ?? 1;
+    const effectiveScore = baseScore * answerMult;
+
+    if (!buckets[q.measures]) buckets[q.measures] = { sum: 0, totalWeight: 0 };
+    buckets[q.measures].sum += effectiveScore * qWeight;
+    buckets[q.measures].totalWeight += qWeight;
   });
+
   const avg = {};
-  Object.keys(scores).forEach((k) => {
-    avg[k] = scores[k].reduce((a, b) => a + b, 0) / scores[k].length;
+  Object.keys(buckets).forEach((k) => {
+    const b = buckets[k];
+    avg[k] = b.totalWeight > 0 ? b.sum / b.totalWeight : 0;
   });
+
   const vals = Object.values(avg);
   const overall = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
   return { byDimension: avg, overall };
