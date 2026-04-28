@@ -1,11 +1,9 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppContext } from './contexts/AppContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useRole } from './hooks/useRole';
 import { AppShell } from './components/layout/AppShell';
 import Dashboard from './pages/Dashboard';
-import CaregiverPortal from './pages/CaregiverPortal';
+import TestPortal from './pages/TestPortal';
 import { ManiaTestPatient } from './pages/ManiaTest';
 import MoodTest from './pages/MoodTest';
 import CompositeTest from './pages/CompositeTest';
@@ -17,14 +15,8 @@ import Resources from './pages/Resources';
 import About from './pages/About';
 import './styles/global.css';
 
-function RoleProvider({ children }) {
-  const { role, patientId, token } = useRole();
-  return (
-    <AppContext.Provider value={{ role, patientId, patientName: 'Daniela', token }}>
-      {children}
-    </AppContext.Provider>
-  );
-}
+import { AppProvider, useApp } from './contexts/AppContext';
+import Login from './pages/Login';
 
 function AdminRoute() {
   return <QuestionAdmin />;
@@ -42,34 +34,52 @@ function PatientRoutes() {
   );
 }
 
+function AppContent() {
+  const { isCaregiver, isAuthenticated } = useApp();
+
+  return (
+    <AppShell>
+      <Routes>
+        {/* Shared / Redirects */}
+        <Route path="/" element={<Navigate to={isCaregiver ? (isAuthenticated ? "/dashboard" : "/login") : "/test/composite"} replace />} />
+        
+        {/* Login route */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+
+        {/* Caregiver-only routes */}
+        {isCaregiver && (
+          <>
+            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/admin/questions" element={isAuthenticated ? <AdminRoute /> : <Navigate to="/login" replace />} />
+            <Route path="/analysis" element={isAuthenticated ? <AnalysisReports /> : <Navigate to="/login" replace />} />
+            <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+          </>
+        )}
+
+        {/* Test routes available to both or specific contexts */}
+        <Route path="/test" element={<TestPortal />} />
+        <Route path="/test/composite" element={<CompositeTest />} />
+        
+        {/* Patient specific routes (via shareable link) */}
+        <Route path="/p/:token/*" element={<PatientRoutes />} />
+
+        {/* Shared info pages */}
+        <Route path="/tips" element={<Tips />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/about" element={<About />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to={isCaregiver ? "/dashboard" : "/test"} replace />} />
+      </Routes>
+    </AppShell>
+  );
+}
+
 function AppRoutes() {
   return (
-    <RoleProvider>
-      <AppShell>
-        <Routes>
-          {/* Caregiver routes */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/caregiver" element={<CaregiverPortal />} />
-          <Route path="/test/composite" element={<CompositeTest />} />
-          <Route path="/admin/questions" element={<AdminRoute />} />
-          <Route path="/analysis" element={<AnalysisReports />} />
-          <Route path="/settings" element={<Settings />} />
-
-          {/* Patient shareable routes */}
-          <Route path="/p/:token/*" element={<PatientRoutes />} />
-
-          {/* Shared info pages */}
-          <Route path="/tips" element={<Tips />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/about" element={<About />} />
-
-          {/* Legacy compatibility */}
-          <Route path="/mood" element={<Navigate to="/p/ZGFuaWVsYQ==/composite" replace />} />
-          <Route path="/patient" element={<Navigate to="/p/ZGFuaWVsYQ==/composite" replace />} />
-        </Routes>
-      </AppShell>
-    </RoleProvider>
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   );
 }
 

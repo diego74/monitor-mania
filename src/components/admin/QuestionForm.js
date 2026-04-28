@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../ui/Button';
 
-const SECTION_OPTIONS = [
-  'Gateway (siempre)',
-  'Módulo manía',
-  'Módulo depresión',
-  'Confirmación',
-  'Ramificación',
-  'Personalizada',
-];
 
 const MEASURES_PRESETS = [
   'sleep', 'depression', 'energy', 'irritability',
@@ -17,11 +9,13 @@ const MEASURES_PRESETS = [
   'anxiety', 'impulsivity', 'mood', 'general', 'crisis',
 ];
 
-export function QuestionForm({ question, onSave, onCancel }) {
+export function QuestionForm({ question, allQuestions = [], groups = [], onSave, onCancel }) {
   const [formData, setFormData] = useState({
-    role: 'both',
-    section: 'Personalizada',
+    objective: 'Personalizada',
+    name: '',
     question: '',
+    patient: '',
+    caregiver: '',
     options: ['', '', '', '', ''],
     measures: '',
     reversed: false,
@@ -29,6 +23,8 @@ export function QuestionForm({ question, onSave, onCancel }) {
     active: true,
     multiplier: 1,
     answerMultipliers: [1, 1, 1, 1, 1],
+    isInitial: false,
+    next: [], // [{ targetId: string, answerIndex: number }]
   });
   const [customMeasure, setCustomMeasure] = useState('');
   const [useCustomMeasure, setUseCustomMeasure] = useState(false);
@@ -43,11 +39,17 @@ export function QuestionForm({ question, onSave, onCancel }) {
       setCustomMeasure(!isPreset ? measures : '');
       setFormData({
         ...question,
-        section: question.section ?? 'Personalizada',
+        objective: question.objective ?? question.section ?? 'Personalizada',
+        name: question.name ?? '',
+        patient: question.patient ?? question.question ?? '',
+        caregiver: question.caregiver ?? '',
+        question: question.question ?? '',
         options: opts.length >= 2 ? opts : [...opts, '', ''].slice(0, Math.max(opts.length, 2)),
         measures: isPreset ? measures : '',
         multiplier: question.multiplier ?? 1,
         answerMultipliers: question.answerMultipliers ?? [1, 1, 1, 1, 1],
+        isInitial: question.isInitial ?? false,
+        next: question.next ?? [],
       });
     }
   }, [question]);
@@ -108,43 +110,86 @@ export function QuestionForm({ question, onSave, onCancel }) {
     setFormData(prev => ({ ...prev, answerMultipliers: next }));
   }
 
+  function addNextTrigger() {
+    setFormData(prev => ({
+      ...prev,
+      next: [...prev.next, { targetId: '', answerIndex: 0 }]
+    }));
+  }
+
+  function updateNextTrigger(index, field, value) {
+    const nextList = [...formData.next];
+    nextList[index] = { ...nextList[index], [field]: value };
+    setFormData(prev => ({ ...prev, next: nextList }));
+  }
+
+  function removeNextTrigger(index) {
+    setFormData(prev => ({
+      ...prev,
+      next: prev.next.filter((_, i) => i !== index)
+    }));
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Sección</label>
+          <label className="block text-sm font-medium mb-1">Grupo de la pregunta</label>
           <select
-            value={formData.section}
-            onChange={(e) => setFormData(prev => ({ ...prev, section: e.target.value }))}
+            value={formData.objective}
+            onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
             className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2"
           >
-            {SECTION_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Rol</label>
-          <select
-            value={formData.role}
-            onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-            className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2"
-            required
-          >
-            <option value="caregiver">Cuidador</option>
-            <option value="patient">Paciente</option>
-            <option value="both">Ambos</option>
+            <option value="">— seleccionar grupo —</option>
+            {groups.map(o => <option key={o._id} value={o.name}>{o.name}</option>)}
+            <option value="Personalizada">Personalizada</option>
           </select>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Pregunta</label>
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Nombre Descriptivo (Título)</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2"
+            placeholder="ej: Horas de sueño"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-emerald-600 dark:text-emerald-400">Pregunta Paciente</label>
+          <textarea
+            value={formData.patient}
+            onChange={(e) => setFormData(prev => ({ ...prev, patient: e.target.value, question: e.target.value }))}
+            className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2 h-24 resize-none"
+            placeholder="¿Cómo te sentís hoy?"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1 text-indigo-600 dark:text-indigo-400">Pregunta Cuidador</label>
+          <textarea
+            value={formData.caregiver}
+            onChange={(e) => setFormData(prev => ({ ...prev, caregiver: e.target.value }))}
+            className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2 h-24 resize-none"
+            placeholder="¿Cómo la ves hoy?"
+          />
+        </div>
+      </div>
+
+      <div className="hidden">
+        <label className="block text-sm font-medium mb-1">Pregunta (Fallback)</label>
         <textarea
           value={formData.question}
           onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
-          className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2 h-20 resize-none"
+          className="w-full border border-slate-300 dark:border-navy-600 bg-white dark:bg-navy-800 rounded-lg px-3 py-2 h-10 resize-none"
           placeholder="Escribe la pregunta..."
-          required
         />
       </div>
 
@@ -246,6 +291,83 @@ export function QuestionForm({ question, onSave, onCancel }) {
           />
           <span className="text-sm">Activa</span>
         </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.isInitial}
+            onChange={(e) => setFormData(prev => ({ ...prev, isInitial: e.target.checked }))}
+          />
+          <span className="text-sm font-semibold text-teal-600 dark:text-teal-400">Pregunta Inicial (siempre se muestra)</span>
+        </label>
+      </div>
+
+      {/* ── Reglas de flujo (Next) ─────────────────────────────────────────── */}
+      <div className="border-t border-slate-200 dark:border-navy-700 pt-3">
+        <label className="block text-sm font-bold mb-2 flex items-center gap-2">
+          <Plus size={14} className="text-teal-500" />
+          Reglas de Aparición (Disparadores)
+        </label>
+        <p className="text-xs text-slate-500 mb-3">
+          Define qué preguntas aparecen DESPUÉS de responder esta, según la opción elegida.
+        </p>
+        
+        <div className="space-y-3">
+          {formData.next.map((trigger, idx) => (
+            <div key={idx} className="flex gap-2 items-center bg-slate-50 dark:bg-navy-900/50 p-2 rounded-lg border border-slate-200 dark:border-navy-700">
+              <div className="flex-1">
+                <label className="block text-[10px] text-slate-400 mb-0.5">Si responde:</label>
+                <select
+                  value={trigger.answerIndex}
+                  onChange={e => updateNextTrigger(idx, 'answerIndex', parseInt(e.target.value))}
+                  className="w-full bg-white dark:bg-navy-800 border border-slate-300 dark:border-navy-600 rounded px-2 py-1 text-xs"
+                >
+                  {formData.options.map((opt, i) => (
+                    <option key={i} value={i}>{opt || `Opción ${i+1}`}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-[2]">
+                <label className="block text-[10px] text-slate-400 mb-0.5">Mostrar pregunta:</label>
+                <select
+                  value={trigger.targetId}
+                  onChange={e => updateNextTrigger(idx, 'targetId', e.target.value)}
+                  className="w-full bg-white dark:bg-navy-800 border border-slate-300 dark:border-navy-600 rounded px-2 py-1 text-xs"
+                >
+                  <option value="">— seleccionar pregunta —</option>
+                  {allQuestions
+                    .filter(q => {
+                      const sameQ = (q._id || q.id) === (formData._id || formData.id);
+                      return !sameQ && !q.isInitial;
+                    })
+                    .map(q => (
+
+                      <option key={q._id || q.id} value={q.id || q._id}>
+                        [{q.id || 'N/A'}] {q.question.substring(0, 60)}{q.question.length > 60 ? '...' : ''}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => removeNextTrigger(idx)}
+                className="mt-4 p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        <button
+          type="button"
+          onClick={addNextTrigger}
+          className="mt-2 flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 dark:text-teal-400 font-medium"
+        >
+          <Plus size={13} /> Agregar disparador
+        </button>
       </div>
 
       {/* ── Multiplicadores de puntuación ─────────────────────────────────── */}

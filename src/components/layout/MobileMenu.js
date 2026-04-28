@@ -1,10 +1,10 @@
-import { X, LayoutDashboard, ClipboardList, BarChart2, Lightbulb, BookOpen, Info, Heart, HeartPulse, FileText, Settings, Sun, Moon } from 'lucide-react';
+import { X, LayoutDashboard, ClipboardList, BarChart2, Lightbulb, BookOpen, Info, Heart, Settings, Sun, Moon } from 'lucide-react';
 import { NavItem, NavSection } from './NavItem';
 import { useApp } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export function MobileMenu({ isOpen, onClose }) {
-  const { role, patientName, token } = useApp();
+  const { patientName, isCaregiver } = useApp();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -56,24 +56,22 @@ export function MobileMenu({ isOpen, onClose }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {role === 'patient' && token && (
-            <NavSection title="Mis Tests">
-              <NavItem to={`/p/${token}/mania`} icon={HeartPulse} label="¿Cómo me siento hoy?" onClick={onClose} />
-              <NavItem to={`/p/${token}/mood`} icon={FileText} label="Evaluar mi estado de ánimo" onClick={onClose} />
+          {isCaregiver ? (
+            <NavSection title="Principal">
+              <NavItem to="/dashboard" icon={LayoutDashboard} label="Inicio" onClick={onClose} />
+              <NavItem to="/analysis" icon={BarChart2} label="Análisis y Reportes" onClick={onClose} />
+            </NavSection>
+          ) : (
+            <NavSection title="Principal">
+              <NavItem to="/test/composite" icon={ClipboardList} label="Inicio (Evaluación)" onClick={onClose} />
             </NavSection>
           )}
 
-          {role === 'caregiver' && (
-            <>
-              <NavSection title="Principal">
-                <NavItem to="/dashboard" icon={LayoutDashboard} label="Inicio" onClick={onClose} />
-                <NavItem to="/caregiver" icon={ClipboardList} label="Tests" onClick={onClose} />
-                <NavItem to="/analysis" icon={BarChart2} label="Análisis" onClick={onClose} />
-              </NavSection>
-              <NavSection title="Configuración">
-                <NavItem to="/settings" icon={Settings} label="Paciente y Admin" onClick={onClose} />
-              </NavSection>
-            </>
+          {isCaregiver && (
+            <NavSection title="Administración">
+              <NavItem to="/admin/questions" icon={Settings} label="Preguntas" onClick={onClose} />
+              <NavItem to="/settings" icon={Settings} label="Ajustes" onClick={onClose} />
+            </NavSection>
           )}
 
           <NavSection title="Información">

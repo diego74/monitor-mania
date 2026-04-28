@@ -1,66 +1,50 @@
 // Scoring para test compuesto con triple axis
-import { calcSeverity } from '../data/questions';
-import { calcMoodSeverity } from '../utils/scoring';
 
-export function calcCompositeSeverity(answers, allQuestions, { collectAudit = false } = {}) {
-  // Separar preguntas por módulo
-  const maniaQ = allQuestions.filter(q => q._origin === 'mania');
-  const moodQ = allQuestions.filter(q => q._origin === 'mood');
-  const depressionQ = allQuestions.filter(q => q._origin === 'depression');
 
-  const maniaScore = maniaQ.length ? calcSeverity(answers, maniaQ).overall : null;
-  const moodScore = moodQ.length ? calcMoodSeverity(answers, moodQ).overall : null;
-  const depressionScore = depressionQ.length ? calcSeverity(answers, depressionQ).overall : null;
+export function calcCompositeSeverity(answers, allQuestions) {
+  // Map measures to modules
+  const maniaMeasures = ['mania', 'energy', 'sleep', 'irritability', 'grandiosity', 'speech', 'distractibility'];
+  const depressionMeasures = ['depression', 'anhedonia', 'sadness', 'fatigue', 'hopelessness'];
+  const moodMeasures = ['mood', 'anxiety', 'stress'];
 
-  // Weights: mania 0.4, mood 0.35, depression 0.25 (ajustable)
-  const weights = { mania: 0.4, mood: 0.35, depression: 0.25 };
-  const validScores = [];
-  const validWeights = [];
+  const getModuleScore = (measures) => {
+    const qInModule = allQuestions.filter(q => measures.includes(q.measures));
+    if (!qInModule.length) return null;
+    
+    let total = 0;
+    let count = 0;
+    qInModule.forEach(q => {
+      const qId = q._id || q.id;
+      const ans = answers[qId];
+      if (ans !== undefined) {
+        // Normalize to 0-5 scale
+        const maxVal = q.options.length - 1;
+        const normalized = (ans / maxVal) * 5;
+        total += normalized;
+        count++;
+      }
+    });
+    
+    return count > 0 ? parseFloat((total / count).toFixed(2)) : null;
+  };
 
-  if (maniaScore !== null) {
-    validScores.push(maniaScore);
-    validWeights.push(weights.mania);
-  }
-  if (moodScore !== null) {
-    validScores.push(moodScore);
-    validWeights.push(weights.mood);
-  }
-  if (depressionScore !== null) {
-    validScores.push(depressionScore);
-    validWeights.push(weights.depression);
-  }
+  const mania = getModuleScore(maniaMeasures) || 0;
+  const depression = getModuleScore(depressionMeasures) || 0;
+  const baseMood = getModuleScore(moodMeasures) || 0;
+  
+  const mixedScore = Math.min(mania, depression);
+  const mood = parseFloat(Math.max(baseMood, mixedScore).toFixed(2));
 
-  const totalWeight = validWeights.reduce((a, b) => a + b, 0);
-  const overall = validScores.length
-    ? validScores.reduce((sum, score, i) => sum + score * validWeights[i], 0) / totalWeight
-    : 0;
-
-  let multipliersApplied = null;
-  if (collectAudit) {
-    const maxIdx = 4;
-    multipliersApplied = allQuestions
-      .filter(q => answers[q.id] !== undefined)
-      .map(q => {
-        const raw = answers[q.id];
-        const baseScore = q.reversed ? maxIdx - raw : raw;
-        const answerMult = (q.answerMultipliers ?? [1, 1, 1, 1, 1])[raw] ?? 1;
-        const qWeight = q.multiplier ?? 1;
-        return {
-          questionId:      q.id,
-          multiplier:      qWeight,
-          answerMultiplier: answerMult,
-          rawScore:        baseScore,
-          effectiveScore:  parseFloat((baseScore * answerMult).toFixed(3)),
-        };
-      });
-  }
+  // Stability is the net score: Mania - Depression (-5 to +5)
+  const stability = parseFloat((mania - depression).toFixed(2));
 
   return {
-    byModule: { mania: maniaScore, mood: moodScore, depression: depressionScore },
-    overall: parseFloat(overall.toFixed(2)),
-    ...(collectAudit ? { multipliersApplied } : {}),
+    byModule: { mania, mood, depression },
+    stability,
+    overall: parseFloat(((mania + depression + mood) / 3).toFixed(2))
   };
 }
+
 
 // Triple axis: Mente, Cuerpo, Social
 export function computeTripleAxis(byDimension) {

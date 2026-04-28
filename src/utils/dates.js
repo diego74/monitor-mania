@@ -2,12 +2,17 @@ export function filterByDays(records, days) {
   if (!days) return records;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
-  return records.filter((r) => new Date(r.timestamp) >= cutoff);
+  return records.filter((r) => {
+    const ts = r.timestamp || r.submittedAt;
+    return ts && new Date(ts) >= cutoff;
+  });
 }
 
 export function filterByDateRange(records, from, to) {
   return records.filter((r) => {
-    const d = new Date(r.timestamp);
+    const ts = r.timestamp || r.submittedAt;
+    if (!ts) return true;
+    const d = new Date(ts);
     if (from && d < new Date(from)) return false;
     if (to) {
       const toEnd = new Date(to);
@@ -21,9 +26,11 @@ export function filterByDateRange(records, from, to) {
 // Mantiene solo el último registro por día (más reciente)
 export function dedupeByDay(records) {
   const map = new Map();
-  [...records].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+  [...records].sort((a, b) => new Date(a.timestamp || a.submittedAt) - new Date(b.timestamp || b.submittedAt))
     .forEach((r) => {
-      const day = new Date(r.timestamp).toDateString();
+      const ts = r.timestamp || r.submittedAt;
+      if (!ts) return;
+      const day = new Date(ts).toDateString();
       map.set(day, r);
     });
   return Array.from(map.values());

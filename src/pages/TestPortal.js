@@ -5,7 +5,7 @@ import { Card, CardTitle } from '../components/ui/Card';
 import { Alert } from '../components/ui/Alert';
 import { Button } from '../components/ui/Button';
 import CompositeTest from './CompositeTest';
-import { hasFilledToday, COLLECTION_NAMES } from '../services/storage';
+import { hasFilledToday } from '../services/storage';
 import { useApp } from '../contexts/AppContext';
 
 function DoneBadge() {
@@ -17,7 +17,7 @@ function DoneBadge() {
   );
 }
 
-export default function CaregiverPortal() {
+export default function TestPortal() {
   const { patientName } = useApp();
   const [mode, setMode] = useState(null); // null | 'composite' | 'send-link'
   const [copied, setCopied] = useState(false);
@@ -27,11 +27,12 @@ export default function CaregiverPortal() {
 
   useEffect(() => {
     Promise.all([
-      hasFilledToday(COLLECTION_NAMES.composite),
+      hasFilledToday('test_results'),
     ]).then(([composite]) => {
       setFilledToday({ composite });
     });
   }, []);
+
 
   async function copyLink(url) {
     try {
@@ -70,8 +71,8 @@ export default function CaregiverPortal() {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-navy-700 dark:text-white">Portal del Cuidador</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">¿Cómo ves a {patientName} hoy?</p>
+        <h1 className="text-xl font-bold text-navy-700 dark:text-white">Centro de Evaluación</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Completar o compartir una evaluación para {patientName}</p>
       </div>
 
       {mode === null && (
@@ -85,12 +86,12 @@ export default function CaregiverPortal() {
               <Brain size={28} className="text-teal-500" />
               {filledToday.composite && <DoneBadge />}
             </div>
-            <p className="font-bold text-navy-700 dark:text-white text-base mb-1">Registrar observación</p>
+            <p className="font-bold text-navy-700 dark:text-white text-base mb-1">Hacer evaluación ahora</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Completar la evaluación adaptativa sobre cómo está {patientName} hoy
+              Completar la evaluación adaptativa para {patientName}
             </p>
             <span className="mt-3 inline-block text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 px-2.5 py-1 rounded-full">
-              Test adaptativo — mínimas preguntas
+              Test inteligente — adaptado a síntomas
             </span>
           </button>
 

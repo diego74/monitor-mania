@@ -1,19 +1,25 @@
-import { collection, addDoc, getDocs, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 const QUESTIONS_COL = 'question_bank';
 
 export async function getAllQuestions() {
-  const q = query(collection(db, QUESTIONS_COL), where('active', '==', true), orderBy('order', 'asc'));
+  const q = query(collection(db, QUESTIONS_COL), where('active', '==', true));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+  return snap.docs
+    .map(d => ({ _id: d.id, ...d.data() }))
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
 }
 
+
 export async function getAllQuestionsIncludingInactive() {
-  const q = query(collection(db, QUESTIONS_COL), orderBy('order', 'asc'));
+  const q = collection(db, QUESTIONS_COL);
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+  return snap.docs
+    .map(d => ({ _id: d.id, ...d.data() }))
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
 }
+
 
 export async function saveQuestion(question) {
   const data = {
@@ -34,10 +40,7 @@ export async function saveQuestion(question) {
 }
 
 export async function deleteQuestion(id) {
-  await updateDoc(doc(db, QUESTIONS_COL, id), {
-    active: false,
-    updatedAt: new Date().toISOString(),
-  });
+  await deleteDoc(doc(db, QUESTIONS_COL, id));
 }
 
 export async function reorderQuestions(questions) {
@@ -50,4 +53,27 @@ export async function reorderQuestions(questions) {
   });
 
   await Promise.all(batch);
+}
+
+export async function updateExistingQuestionsSchema() {
+  const q = collection(db, QUESTIONS_COL);
+  const snap = await getDocs(q);
+  const updates = [];
+
+  snap.docs.forEach(d => {
+    const data = d.data();
+    const needsUpdate = !data.name || !data.patient || !data.caregiver;
+    
+    if (needsUpdate) {
+      updates.push(updateDoc(d.ref, {
+        name: data.name || '',
+        patient: data.patient || data.question || '',
+        caregiver: data.caregiver || data.question || '',
+        updatedAt: new Date().toISOString()
+      }));
+    }
+  });
+
+  await Promise.all(updates);
+  return updates.length;
 }

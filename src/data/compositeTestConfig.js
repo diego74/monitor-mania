@@ -43,17 +43,18 @@ function shuffleArray(array, seed) {
 export const stage0Questions = [
   {
     id: 'pt9',
+    name: 'Horas de sueño',
     question: '¿Cuántas horas dormiste anoche?',
     options: ['6+ horas', '5-6 horas', '4-5 horas', '3-4 horas', '< 3 horas'],
     measures: 'sleep',
     _origin: 'mania',
     _stage: 'gateway',
-    // Señal fuerte de manía: dormir < 3h amplifica el score considerablemente
     multiplier: 1.5,
     answerMultipliers: [1, 1, 1.1, 1.3, 1.6],
   },
   {
     id: 'mc1',
+    name: 'Estado de ánimo',
     question: '¿Cómo describirías tu estado de ánimo general hoy?',
     options: ['Bien, equilibrada', 'Un poco triste', 'Bastante triste', 'Muy deprimida', 'Sin esperanza'],
     measures: 'depression',
@@ -64,6 +65,7 @@ export const stage0Questions = [
   },
   {
     id: 'pt7',
+    name: 'Nivel de energía',
     question: '¿Qué tan energética te sentís comparado con ayer?',
     options: ['Mucha menos energía', 'Menos', 'Igual', 'Más', 'Muchísima más energía'],
     measures: 'energy',
@@ -74,6 +76,7 @@ export const stage0Questions = [
   },
   {
     id: 'pt10',
+    name: 'Irritabilidad',
     question: '¿Qué tan fácil es que algo te irrite hoy?',
     options: ['Nada me irrita', 'Poco', 'Normal', 'Me irrito con facilidad', 'Todo me irrita'],
     measures: 'irritability',
@@ -88,6 +91,7 @@ export const stage0Questions = [
 export const maniaModuleQuestions = [
   {
     id: 'pt1',
+    name: 'Flujo de ideas',
     question: '¿Cuántas ideas nuevas o proyectos tuviste hoy?',
     options: ['Ninguno', '1-2', '3-5', '6-10', 'Más de 10'],
     measures: 'flight_of_ideas',
@@ -96,6 +100,7 @@ export const maniaModuleQuestions = [
   },
   {
     id: 'pt4',
+    name: 'Velocidad del habla',
     question: '¿Qué tan rápido hablás comparado con lo normal?',
     options: ['Más lento', 'Normal', 'Un poco más rápido', 'Bastante más rápido', 'Muy rápido'],
     measures: 'pressured_speech',
@@ -104,6 +109,7 @@ export const maniaModuleQuestions = [
   },
   {
     id: 'mc16',
+    name: 'Velocidad de pensamiento',
     question: '¿A qué velocidad van tus pensamientos hoy?',
     options: ['Normal', 'Un poco lentos', 'Muy lentos', 'Un poco acelerados', 'Muy acelerados'],
     measures: 'mixed_features',
@@ -116,6 +122,7 @@ export const maniaModuleQuestions = [
 export const hypomaniaModuleQuestions = [
   {
     id: 'hypo1',
+    name: 'Optimismo/Confianza',
     question: '¿Te sentís más optimista o con más confianza de lo habitual?',
     options: ['No, igual que siempre', 'Un poco más', 'Bastante más', 'Mucho más', 'Extremadamente más'],
     measures: 'grandiosity',
@@ -124,6 +131,7 @@ export const hypomaniaModuleQuestions = [
   },
   {
     id: 'hypo2',
+    name: 'Sociabilidad',
     question: '¿Estás más sociable o con ganas de conectar con gente que de costumbre?',
     options: ['Para nada', 'Un poco más de lo normal', 'Bastante más', 'Mucho más', 'Extremadamente sociable'],
     measures: 'social_drive',
@@ -132,6 +140,7 @@ export const hypomaniaModuleQuestions = [
   },
   {
     id: 'hypo3',
+    name: 'Energía con poco sueño',
     question: '¿Sentís que necesitás dormir menos pero igual tenés energía durante el día?',
     options: ['No, necesito mi horario normal', 'Un poco menos y me siento bien', 'Definitivamente duermo menos sin cansarme', 'Mucho menos sueño y llena de energía', 'Casi no dormí pero me siento activa'],
     measures: 'sleep',
@@ -144,6 +153,7 @@ export const hypomaniaModuleQuestions = [
 export const depressionModuleQuestions = [
   {
     id: 'mc4',
+    name: 'Concentración/Decisión',
     question: '¿Podés concentrarte y tomar decisiones hoy?',
     options: ['Sí, con claridad', 'Con algo de dificultad', 'Me cuesta bastante', 'Muy difícil', 'No puedo decidir'],
     measures: 'depression',
@@ -152,6 +162,7 @@ export const depressionModuleQuestions = [
   },
   {
     id: 'mc17',
+    name: 'Cumplimiento de planes',
     question: '¿Pudiste hacer las cosas que planeaste hoy?',
     options: ['Sí, todo', 'La mayoría', 'La mitad', 'Muy poco', 'Nada'],
     measures: 'depression',
@@ -160,6 +171,7 @@ export const depressionModuleQuestions = [
   },
   {
     id: 'mc10',
+    name: 'Nerviosismo/Ansiedad',
     question: '¿Qué tan nerviosa o ansiosa te sentís?',
     options: ['Tranquila', 'Algo nerviosa', 'Bastante ansiosa', 'Muy ansiosa', 'Ansiedad extrema'],
     measures: 'anxiety',
@@ -168,6 +180,7 @@ export const depressionModuleQuestions = [
   },
   {
     id: 'stress1',
+    name: 'Nivel de estrés',
     question: '¿Qué tan estresada te sentís hoy?',
     options: ['Nada estresada', 'Un poco estresada', 'Bastante estresada', 'Muy estresada', 'Estrés extremo'],
     measures: 'stress',
@@ -180,6 +193,7 @@ export const depressionModuleQuestions = [
 export const psychosisModuleQuestions = [
   {
     id: 'psych1',
+    name: 'Misión/Poderes especiales',
     question: '¿Sentís que tenés una misión especial o poderes que otros no comprenden?',
     options: ['No', 'Un pensamiento pasajero', 'Varias veces hoy', 'Creo que sí con convicción', 'Estoy completamente segura'],
     measures: 'psychosis',
@@ -188,6 +202,7 @@ export const psychosisModuleQuestions = [
   },
   {
     id: 'psych2',
+    name: 'Alucinaciones (voces/visiones)',
     question: '¿Escuchaste voces o viste cosas que otros a tu alrededor no perciben?',
     options: ['No', 'No estoy segura', 'Una vez hoy', 'Varias veces', 'Con frecuencia'],
     measures: 'psychosis',
@@ -199,6 +214,7 @@ export const psychosisModuleQuestions = [
 // ─── Confirmatory (stable result, shown when nothing is elevated) ──────────
 export const confirmationQuestion = {
   id: 'confirm_stable',
+  name: 'Registro adicional',
   question: '¿Hay algo más que quieras registrar sobre cómo te sentís hoy?',
   options: ['No, todo bien', 'Me siento un poco diferente', 'Tengo algo de inquietud', 'Sí, no estoy tan bien', 'Estoy bastante mal'],
   measures: 'general',
@@ -206,9 +222,9 @@ export const confirmationQuestion = {
   _stage: 'confirmation',
 };
 
-// ─── Confirmation follow-up (shown if confirm_stable >= 2) ────────────────
 export const confirmationFollowUpQuestion = {
   id: 'confirm_followup',
+  name: 'Impacto en rutina',
   question: '¿Cuánto está afectando ese malestar tu día a día?',
   options: [
     'Casi nada, puedo seguir mi rutina',
@@ -222,25 +238,11 @@ export const confirmationFollowUpQuestion = {
   _stage: 'confirmation',
 };
 
-export const confirmationFollowUpQuestionCaregiver = {
-  id: 'confirm_followup',
-  question: '¿Cuánto está afectando ese malestar el día de Daniela?',
-  options: [
-    'Casi nada, puede seguir su rutina',
-    'Un poco, noto algo diferente en ella',
-    'Bastante, le cuesta mantener el ritmo',
-    'Mucho, el día se le hace difícil',
-    'Totalmente, no puede funcionar bien',
-  ],
-  measures: 'general',
-  _origin: 'mood',
-  _stage: 'confirmation',
-};
-
 // ─── Branching questions (crisis / validation / contextual) ──────────────
 export const branchingQuestions = [
   {
     id: 'mixed_state',
+    name: 'Estado mixto (Agitación+Tristeza)',
     question: '¿Sentís que estás agitada y triste al mismo tiempo?',
     options: ['No', 'Un poco', 'Bastante', 'Mucho', 'Extremadamente'],
     measures: 'mixed_features',
@@ -250,6 +252,7 @@ export const branchingQuestions = [
   },
   {
     id: 'val_energy',
+    name: 'Energía con poco sueño',
     question: 'A pesar de dormir poco, ¿te sentís con mucha energía?',
     options: ['No', 'Un poco', 'Bastante', 'Sí, mucha', 'Extremadamente'],
     measures: 'energy',
@@ -259,6 +262,7 @@ export const branchingQuestions = [
   },
   {
     id: 'impulsivity',
+    name: 'Gastos impulsivos',
     question: '¿Hiciste compras o gastos impulsivos últimamente?',
     options: ['No', 'Una cosa pequeña', 'Algunas', 'Muchas', 'Excesivamente'],
     measures: 'impulsivity',
@@ -268,6 +272,7 @@ export const branchingQuestions = [
   },
   {
     id: 'psychosis_screen',
+    name: 'Screening psicosis',
     question: '¿Tuviste pensamientos o percepciones que otros no comparten, o sentiste que todo tiene un significado especial para vos?',
     options: ['No', 'Una o dos veces', 'Varias veces', 'Con frecuencia', 'Constantemente'],
     measures: 'psychosis',
@@ -278,6 +283,7 @@ export const branchingQuestions = [
   },
   {
     id: 'suicidal_risk',
+    name: 'Riesgo suicida',
     question: '¿Tuviste pensamientos de que sería mejor no vivir?',
     options: ['No', 'Pensamientos leves', 'Pensamientos recurrentes', 'Con planes', 'Acciones tomadas'],
     measures: 'crisis',
@@ -287,6 +293,7 @@ export const branchingQuestions = [
   },
   {
     id: 'birthday_month',
+    name: 'Efecto cumpleaños',
     question: '¿Cómo te sentís en relación a tu cumpleaños este mes?',
     options: ['Bien, lo disfruto', 'Indiferente', 'Un poco melancólica', 'Ansiosa', 'Muy afectada'],
     measures: 'mood',
@@ -297,6 +304,7 @@ export const branchingQuestions = [
   },
   {
     id: 'cycle_premenstrual',
+    name: 'Fase premenstrual',
     question: '¿Cómo estás notando tu cuerpo y emociones en estos días del ciclo?',
     options: ['Normal', 'Algo más sensible', 'Bastante irritable', 'Muy intensa emocionalmente', 'Muy difícil'],
     measures: 'irritability',
@@ -310,12 +318,10 @@ export const branchingQuestions = [
 // ─── Module map (for triggersModule resolution) ───────────────────────────
 export const MODULE_MAP = {
   psychosis: {
-    patient:   psychosisModuleQuestions,
-    caregiver: null, // resolved below after caregiver versions are defined
+    questionnaire: psychosisModuleQuestions,
   },
   hypomania: {
-    patient:   hypomaniaModuleQuestions,
-    caregiver: null, // resolved below
+    questionnaire: hypomaniaModuleQuestions,
   },
 };
 
@@ -509,211 +515,10 @@ export function detectInconsistencies(answers, context) {
   return list;
 }
 
-// ─── Caregiver-framed question sets ──────────────────────────────────────
-export const stage0QuestionsCaregiver = [
-  {
-    id: 'pt9',
-    question: '¿Cuántas horas durmió Daniela anoche?',
-    options: ['6+ horas', '5-6 horas', '4-5 horas', '3-4 horas', '< 3 horas'],
-    measures: 'sleep',
-    _origin: 'mania',
-    _stage: 'gateway',
-  },
-  {
-    id: 'mc1',
-    question: '¿Cómo describirías su estado de ánimo general hoy?',
-    options: ['Bien, equilibrada', 'Un poco triste', 'Bastante triste', 'Muy deprimida', 'Sin esperanza'],
-    measures: 'depression',
-    _origin: 'mood',
-    _stage: 'gateway',
-  },
-  {
-    id: 'pt7',
-    question: '¿Qué tan activa o enérgica la ves hoy?',
-    options: ['Con muy poca energía', 'Menos activa de lo normal', 'Normal', 'Más activa de lo normal', 'Muy acelerada o desbordada'],
-    measures: 'energy',
-    _origin: 'mania',
-    _stage: 'gateway',
-  },
-  {
-    id: 'pt10',
-    question: '¿Qué tan irritable o sensible la notás hoy?',
-    options: ['Muy tranquila', 'Poco irritable', 'Normal', 'Bastante irritable', 'Muy irritable'],
-    measures: 'irritability',
-    _origin: 'mania',
-    _stage: 'gateway',
-  },
-];
+// Redundant branchingQuestions removed.
 
-export const maniaModuleQuestionsCaregiver = [
-  {
-    id: 'pt1',
-    question: '¿Cuántas ideas nuevas o proyectos mencionó hoy?',
-    options: ['Ninguno', '1-2', '3-5', '6-10', 'Más de 10'],
-    measures: 'flight_of_ideas',
-    _origin: 'mania',
-    _stage: 'mania',
-  },
-  {
-    id: 'pt4',
-    question: '¿Habla más rápido de lo normal?',
-    options: ['Más lento', 'Normal', 'Un poco más rápido', 'Bastante más rápido', 'Muy rápido'],
-    measures: 'pressured_speech',
-    _origin: 'mania',
-    _stage: 'mania',
-  },
-  {
-    id: 'mc16',
-    question: '¿Cómo la notás en cuanto a velocidad de pensamiento o distracción?',
-    options: ['Normal', 'Un poco lenta', 'Muy lenta', 'Un poco acelerada', 'Muy acelerada'],
-    measures: 'mixed_features',
-    _origin: 'mood',
-    _stage: 'mania',
-  },
-];
 
-export const hypomaniaModuleQuestionsCaregiver = [
-  {
-    id: 'hypo1',
-    question: '¿La notás más optimista o segura de sí misma de lo habitual?',
-    options: ['No, igual que siempre', 'Un poco más', 'Bastante más', 'Mucho más', 'Extremadamente más'],
-    measures: 'grandiosity',
-    _origin: 'mania',
-    _stage: 'hypomania',
-  },
-  {
-    id: 'hypo2',
-    question: '¿La ves más sociable o con más ganas de relacionarse que de costumbre?',
-    options: ['Para nada', 'Un poco más de lo normal', 'Bastante más', 'Mucho más', 'Extremadamente sociable'],
-    measures: 'social_drive',
-    _origin: 'mania',
-    _stage: 'hypomania',
-  },
-  {
-    id: 'hypo3',
-    question: '¿Parece que duerme menos pero igual tiene energía durante el día?',
-    options: ['No, duerme su horario normal', 'Un poco menos y se ve bien', 'Definitivamente duerme menos sin cansarse', 'Mucho menos sueño y llena de energía', 'Casi no durmió pero se ve activa'],
-    measures: 'sleep',
-    _origin: 'mania',
-    _stage: 'hypomania',
-  },
-];
-
-export const depressionModuleQuestionsCaregiver = [
-  {
-    id: 'mc4',
-    question: '¿La notás concentrada y capaz de tomar decisiones?',
-    options: ['Sí, con claridad', 'Con algo de dificultad', 'Le cuesta bastante', 'Muy difícil', 'No puede decidir'],
-    measures: 'depression',
-    _origin: 'mood',
-    _stage: 'depression',
-  },
-  {
-    id: 'mc17',
-    question: '¿Pudo hacer las cosas que tenía planeadas?',
-    options: ['Sí, todo', 'La mayoría', 'La mitad', 'Muy poco', 'Nada'],
-    measures: 'depression',
-    _origin: 'mood',
-    _stage: 'depression',
-  },
-  {
-    id: 'mc10',
-    question: '¿Qué tan nerviosa o ansiosa la notás?',
-    options: ['Tranquila', 'Algo nerviosa', 'Bastante ansiosa', 'Muy ansiosa', 'Ansiedad extrema'],
-    measures: 'anxiety',
-    _origin: 'mood',
-    _stage: 'depression',
-  },
-  {
-    id: 'stress1',
-    question: '¿Qué tan estresada la notás hoy?',
-    options: ['Nada estresada', 'Un poco estresada', 'Bastante estresada', 'Muy estresada', 'Estrés extremo'],
-    measures: 'stress',
-    _origin: 'mood',
-    _stage: 'depression',
-  },
-];
-
-export const psychosisModuleQuestionsCaregiver = [
-  {
-    id: 'psych1',
-    question: '¿Expresó tener una misión especial o poderes que otros no comprenden?',
-    options: ['No', 'Un comentario pasajero', 'Varias veces hoy', 'Lo afirma con convicción', 'Está completamente convencida'],
-    measures: 'psychosis',
-    _origin: 'mania',
-    _stage: 'psychosis',
-  },
-  {
-    id: 'psych2',
-    question: '¿Mencionó escuchar voces o ver cosas que vos no podés percibir?',
-    options: ['No', 'No está segura', 'Una vez hoy', 'Varias veces', 'Con frecuencia'],
-    measures: 'psychosis',
-    _origin: 'mania',
-    _stage: 'psychosis',
-  },
-];
-
-export const confirmationQuestionCaregiver = {
-  id: 'confirm_stable',
-  question: '¿Hay algo más que quieras registrar sobre cómo la ves hoy?',
-  options: ['No, todo bien', 'La veo un poco diferente', 'Tiene algo de inquietud', 'No la veo tan bien', 'La veo bastante mal'],
-  measures: 'general',
-  _origin: 'mood',
-  _stage: 'confirmation',
-};
-
-export const branchingQuestionsCaregiver = [
-  {
-    id: 'mixed_state',
-    question: '¿La notás agitada y triste al mismo tiempo?',
-    options: ['No', 'Un poco', 'Bastante', 'Mucho', 'Extremadamente'],
-    measures: 'mixed_features',
-    type: 'mixed',
-    _stage: 'branch',
-    condition: (ctx) => ctx.depressionScore >= 3 && ctx.maniaScore >= 3,
-  },
-  {
-    id: 'val_energy',
-    question: 'A pesar de dormir poco, ¿la ves con mucha energía?',
-    options: ['No', 'Un poco', 'Bastante', 'Sí, mucha', 'Extremadamente'],
-    measures: 'energy',
-    type: 'validation',
-    _stage: 'branch',
-    condition: (ctx) => ctx.sleepHours < 4,
-  },
-  {
-    id: 'impulsivity',
-    question: '¿Hizo compras o gastos impulsivos últimamente?',
-    options: ['No', 'Una cosa pequeña', 'Algunas', 'Muchas', 'Excesivamente'],
-    measures: 'impulsivity',
-    type: 'risk',
-    _stage: 'branch',
-    condition: (ctx) => ctx.maniaScore >= 3,
-  },
-  {
-    id: 'psychosis_screen',
-    question: '¿Notaste que habla de cosas que no tienen sentido para el resto, o cree cosas que parecen fuera de la realidad?',
-    options: ['No', 'Una o dos veces', 'Varias veces', 'Con frecuencia', 'Constantemente'],
-    measures: 'psychosis',
-    type: 'crisis',
-    _stage: 'branch',
-    triggersModule: 'psychosis',
-    condition: (ctx) => ctx.maniaScore >= 3.0,
-  },
-  {
-    id: 'suicidal_risk',
-    question: '¿Expresó pensamientos de que sería mejor no vivir?',
-    options: ['No', 'Comentarios leves', 'Comentarios recurrentes', 'Con planes', 'Acciones tomadas'],
-    measures: 'crisis',
-    type: 'crisis',
-    _stage: 'branch',
-    condition: (ctx) => ctx.depressionScore >= 3,
-  },
-];
-
-// Resolve caregiver module map references
-MODULE_MAP.psychosis.caregiver = psychosisModuleQuestionsCaregiver;
-MODULE_MAP.hypomania.caregiver = hypomaniaModuleQuestionsCaregiver;
+// Removed caregiver resolve logic
 
 // ─── All questions (for answer display in history) ────────────────────────
 export const ALL_QUESTIONS = [
@@ -723,16 +528,8 @@ export const ALL_QUESTIONS = [
   ...depressionModuleQuestions,
   ...psychosisModuleQuestions,
   ...branchingQuestions,
-  ...stage0QuestionsCaregiver,
-  ...maniaModuleQuestionsCaregiver,
-  ...hypomaniaModuleQuestionsCaregiver,
-  ...depressionModuleQuestionsCaregiver,
-  ...psychosisModuleQuestionsCaregiver,
-  ...branchingQuestionsCaregiver,
   confirmationQuestion,
   confirmationFollowUpQuestion,
-  confirmationQuestionCaregiver,
-  confirmationFollowUpQuestionCaregiver,
 ].reduce((map, q) => { map[q.id] = map[q.id] ?? q; return map; }, {});
 
 // ─── Caregiver full questions (unchanged) ────────────────────────────────

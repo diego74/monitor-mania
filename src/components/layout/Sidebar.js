@@ -1,10 +1,10 @@
-import { LayoutDashboard, ClipboardList, BarChart2, Lightbulb, BookOpen, Info, Heart, HeartPulse, Settings, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart2, Lightbulb, BookOpen, Info, Heart, Settings, Sun, Moon } from 'lucide-react';
 import { NavItem, NavSection } from './NavItem';
 import { useApp } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export function Sidebar({ onNav }) {
-  const { role, patientName, token } = useApp();
+  const { patientName, isCaregiver } = useApp();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -23,23 +23,22 @@ export function Sidebar({ onNav }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {role === 'patient' && token && (
-          <NavSection title="Mi Evaluación">
-            <NavItem to={`/p/${token}/composite`} icon={HeartPulse} label="¿Cómo me siento hoy?" onClick={onNav} />
+        {isCaregiver ? (
+          <NavSection title="Principal">
+            <NavItem to="/dashboard" icon={LayoutDashboard} label="Inicio" onClick={onNav} />
+            <NavItem to="/analysis" icon={BarChart2} label="Análisis y Reportes" onClick={onNav} />
+          </NavSection>
+        ) : (
+          <NavSection title="Principal">
+            <NavItem to="/test/composite" icon={ClipboardList} label="Inicio (Evaluación)" onClick={onNav} />
           </NavSection>
         )}
 
-        {role === 'caregiver' && (
-          <>
-            <NavSection title="Principal">
-              <NavItem to="/dashboard" icon={LayoutDashboard} label="Inicio" onClick={onNav} />
-              <NavItem to="/caregiver" icon={ClipboardList} label="Registrar" onClick={onNav} />
-              <NavItem to="/analysis" icon={BarChart2} label="Análisis" onClick={onNav} />
-            </NavSection>
-            <NavSection title="Configuración">
-              <NavItem to="/settings" icon={Settings} label="Paciente y Admin" onClick={onNav} />
-            </NavSection>
-          </>
+        {isCaregiver && (
+          <NavSection title="Administración">
+            <NavItem to="/admin/questions" icon={Settings} label="Preguntas" onClick={onNav} />
+            <NavItem to="/settings" icon={Settings} label="Ajustes" onClick={onNav} />
+          </NavSection>
         )}
 
         <NavSection title="Información">
