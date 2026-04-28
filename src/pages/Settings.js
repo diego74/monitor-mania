@@ -114,7 +114,7 @@ export default function Settings() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-navy-800 rounded-xl p-1">
+      {/* <div className="flex gap-1 mb-5 bg-slate-100 dark:bg-navy-800 rounded-xl p-1">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
@@ -132,7 +132,7 @@ export default function Settings() {
             </button>
           );
         })}
-      </div>
+      </div> */}
 
       {/* Patient profile tab */}
       {tab === 'patient' && (

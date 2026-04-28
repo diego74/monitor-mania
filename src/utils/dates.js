@@ -37,12 +37,27 @@ export function dedupeByDay(records) {
 }
 
 export function formatDate(ts) {
+  if (typeof ts === 'string' && ts.includes('-') && !ts.includes('T')) {
+    const parts = ts.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
   return new Date(ts).toLocaleDateString('es-AR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
 }
 
+export function formatDateTime(ts) {
+  const date = new Date(ts);
+  const d = date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const t = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  return `${d} ${t}`;
+}
+
 export function formatDateShort(ts) {
+  if (typeof ts === 'string' && ts.includes('-') && !ts.includes('T')) {
+    const parts = ts.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+  }
   return new Date(ts).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 }
 

@@ -37,7 +37,7 @@ export function Sidebar({ onNav }) {
         {isCaregiver && (
           <NavSection title="Administración">
             <NavItem to="/admin/questions" icon={Settings} label="Preguntas" onClick={onNav} />
-            <NavItem to="/settings" icon={Settings} label="Ajustes" onClick={onNav} />
+            <NavItem to="/settings" icon={Settings} label="Paciente" onClick={onNav} />
           </NavSection>
         )}
 

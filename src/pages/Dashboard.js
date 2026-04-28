@@ -63,13 +63,26 @@ export default function Dashboard() {
     );
   }
 
+  const safeDate = (ts) => {
+    if (typeof ts === 'string' && ts.includes('-') && !ts.includes('T')) {
+      const [y, m, d] = ts.split('-');
+      return new Date(y, m - 1, d);
+    }
+    return new Date(ts);
+  };
+
   const streak = computeStreak(allRecords);
-  const compositeRecs = allRecords.filter(r => r.testType === 'composite' || r.testType === 'adaptive_pure');
+  const compositeRecs = allRecords.filter(r => 
+    r.testType === 'composite' || 
+    r.testType === 'adaptive_pure' || 
+    r.stability !== undefined ||
+    (r.scores?.mania !== undefined && r.scores?.depression !== undefined)
+  );
   const latest = compositeRecs[0];
   
   // Stats calculations: average if multiple for the same day
-  const latestDateStr = latest ? new Date(latest.submittedAt || latest.timestamp).toDateString() : null;
-  const latestRecs = compositeRecs.filter(r => new Date(r.submittedAt || r.timestamp).toDateString() === latestDateStr);
+  const latestDateStr = latest ? safeDate(latest.submittedAt || latest.timestamp).toDateString() : null;
+  const latestRecs = compositeRecs.filter(r => safeDate(r.submittedAt || r.timestamp).toDateString() === latestDateStr);
   
   let maniaVal = 0, depressionVal = 0, moodVal = 0;
   let hasDiscrepancy = false;
@@ -145,15 +158,15 @@ export default function Dashboard() {
         </div>
         <div className="bg-white dark:bg-navy-800 rounded-2xl p-3 shadow-lg border border-slate-50 dark:border-navy-700 text-center">
           <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Manía</p>
-          <p className="text-2xl font-black text-rose-500">{maniaVal.toFixed(1)}</p>
+          <p className={`text-2xl font-black ${Math.abs(maniaVal) <= 2 ? 'text-rose-300' : 'text-rose-500'}`}>{maniaVal.toFixed(1)}</p>
         </div>
         <div className="bg-white dark:bg-navy-800 rounded-2xl p-3 shadow-lg border border-slate-50 dark:border-navy-700 text-center">
           <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Depre</p>
-          <p className="text-2xl font-black text-blue-500">{depressionVal.toFixed(1)}</p>
+          <p className={`text-2xl font-black ${Math.abs(depressionVal) <= 2 ? 'text-blue-300' : 'text-blue-500'}`}>{depressionVal.toFixed(1)}</p>
         </div>
         <div className="bg-white dark:bg-navy-800 rounded-2xl p-3 shadow-lg border border-slate-50 dark:border-navy-700 text-center">
           <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Mixto</p>
-          <p className="text-2xl font-black text-amber-500">{moodVal.toFixed(1)}</p>
+          <p className={`text-2xl font-black ${Math.abs(moodVal) <= 2 ? 'text-amber-300' : 'text-amber-500'}`}>{moodVal.toFixed(1)}</p>
         </div>
       </div>
 
@@ -177,12 +190,18 @@ export default function Dashboard() {
                <div className="space-y-1">
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Punto de Equilibrio Actual</p>
                  <div className="flex items-end gap-2">
-                    <p className={`text-6xl font-black leading-none ${stabilityVal > 0 ? 'text-rose-500' : stabilityVal < 0 ? 'text-blue-500' : 'text-emerald-500'}`}>
+                    <p className={`text-6xl font-black leading-none ${
+                      Math.abs(stabilityVal) <= 2
+                        ? (stabilityVal > 0 ? 'text-rose-300' : stabilityVal < 0 ? 'text-blue-300' : 'text-emerald-300')
+                        : (stabilityVal > 0 ? 'text-rose-600' : 'text-blue-600')
+                    }`}>
                        {stabilityVal > 0 ? '+' : ''}{stabilityVal.toFixed(1)}
                     </p>
                     <div className="mb-1">
-                       {moodVal >= 2 ? <AlertCircle className="text-amber-500" /> : Math.abs(stabilityVal) < 1 ? <Minus className="text-emerald-500" /> : stabilityVal > 0 ? <TrendingUp className="text-rose-500" /> : <TrendingDown className="text-blue-500" />}
-                       <p className="text-[10px] font-black uppercase text-slate-500">
+                       {moodVal >= 2 ? <AlertCircle className="text-amber-500" /> : Math.abs(stabilityVal) < 1 ? <Minus className="text-emerald-500" /> : stabilityVal > 0 ? <TrendingUp className={stabilityVal > 2 ? "text-rose-600" : "text-rose-300"} /> : <TrendingDown className={stabilityVal < -2 ? "text-blue-600" : "text-blue-300"} />}
+                       <p className={`text-[10px] font-black uppercase ${
+                         Math.abs(stabilityVal) <= 2 ? 'text-slate-400' : 'text-slate-600'
+                       }`}>
                          {moodVal >= 2 ? 'Estado Mixto' : (Math.abs(stabilityVal) < 1 ? 'Estable' : stabilityVal > 0 ? 'Manía' : 'Depresión')}
                        </p>
                     </div>
@@ -198,11 +217,11 @@ export default function Dashboard() {
             <div className="relative">
               <div className="w-full bg-slate-100 dark:bg-navy-900 h-6 rounded-2xl overflow-hidden flex border-2 border-slate-50 dark:border-navy-700 shadow-inner">
                 <div className="flex-1 bg-blue-500/10 flex justify-end">
-                   <div className="bg-blue-500 h-full transition-all duration-1000" style={{ width: `${Math.min(depressionVal/5*100, 100)}%` }} />
+                   <div className={`h-full transition-all duration-1000 ${Math.abs(depressionVal) <= 2 ? 'bg-blue-300' : 'bg-blue-500'}`} style={{ width: `${Math.min(depressionVal/5*100, 100)}%` }} />
                 </div>
                 <div className="w-1 bg-navy-700 z-10" />
                 <div className="flex-1 bg-rose-500/10">
-                   <div className="bg-rose-500 h-full transition-all duration-1000" style={{ width: `${Math.min(maniaVal/5*100, 100)}%` }} />
+                   <div className={`h-full transition-all duration-1000 ${Math.abs(maniaVal) <= 2 ? 'bg-rose-300' : 'bg-rose-500'}`} style={{ width: `${Math.min(maniaVal/5*100, 100)}%` }} />
                 </div>
               </div>
               <div className="flex justify-between mt-2 text-[9px] font-black text-slate-400 uppercase tracking-tighter">
@@ -272,4 +291,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

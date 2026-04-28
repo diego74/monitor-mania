@@ -12,7 +12,7 @@ import { getAllGroups, saveGroup, deleteGroup } from '../services/groupStorage';
 const TABS = [
   { id: 'questions', label: 'Preguntas', icon: ListChecks },
   { id: 'groups',    label: 'Grupos', icon: Layers },
-  { id: 'config',    label: 'Configuración', icon: Settings },
+  // { id: 'config',    label: 'Configuración', icon: Settings },
 ];
 
 export default function QuestionAdmin() {
@@ -408,7 +408,9 @@ export default function QuestionAdmin() {
           )}
         </div>
       )}
-      {!loading && activeTab === 'config' && (
+
+      {/* ── TAB: CONFIGURACIÓN ────────────────────────────────────────────── */}
+      {/* {!loading && activeTab === 'config' && (
         <div className="space-y-6">
           <Card>
             <CardTitle icon={<Settings size={18} />}>Configuración General</CardTitle>
@@ -451,7 +453,7 @@ export default function QuestionAdmin() {
             </div>
           </Card>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

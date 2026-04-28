@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 import { deleteTestResult } from '../services/storage';
 import { getAllQuestions } from '../services/questionStorage';
-import { filterByDays, dedupeByDay, formatDate } from '../utils/dates';
+import { filterByDays, dedupeByDay, formatDate, formatDateTime } from '../utils/dates';
 import { Card } from '../components/ui/Card';
 import { Alert } from '../components/ui/Alert';
 import { Activity, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
@@ -23,6 +23,10 @@ ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, Li
 
 const getLocalDayStr = (ts) => {
   if (!ts) return '';
+  // If it's already YYYY-MM-DD, return as is to avoid UTC shift
+  if (typeof ts === 'string' && ts.length === 10 && ts.includes('-') && !ts.includes('T')) {
+    return ts;
+  }
   const date = new Date(ts);
   if (isNaN(date.getTime())) return '';
   const year = date.getFullYear();
@@ -102,13 +106,13 @@ function WeeklyHeatmap({ compositeRecs = [] }) {
 
   const cellColor = (score) => {
     if (score == null) return 'bg-slate-100 dark:bg-navy-800';
-    if (score >= 3.5) return 'bg-violet-600';
-    if (score >= 2.0) return 'bg-rose-500';
-    if (score >= 1.0) return 'bg-amber-400';
-    if (score <= -3.5) return 'bg-indigo-800';
-    if (score <= -2.0) return 'bg-blue-600';
-    if (score <= -1.0) return 'bg-sky-400';
-    return 'bg-emerald-400';
+    if (score >= 3.5) return 'bg-violet-600'; // Strong high positive
+    if (score >= 2.0) return 'bg-rose-200'; // Pastel positive
+    if (score >= 1.0) return 'bg-amber-200'; // Slightly positive
+    if (score <= -3.5) return 'bg-indigo-800'; // Strong high negative
+    if (score <= -2.0) return 'bg-blue-200'; // Pastel negative
+    if (score <= -1.0) return 'bg-sky-200'; // Slightly negative
+    return 'bg-emerald-200'; // Neutral pastel
   };
 
   return (
@@ -156,7 +160,12 @@ export default function AnalysisReports() {
   }
 
   const filteredResults = applyFilter(results);
-  const compositeHistory = results.filter(r => r.testType === 'composite' || r.testType === 'adaptive_pure');
+  const compositeHistory = results.filter(r => 
+    r.testType === 'composite' || 
+    r.testType === 'adaptive_pure' || 
+    r.stability !== undefined ||
+    (r.scores?.mania !== undefined && r.scores?.depression !== undefined)
+  );
   const compositeFiltered = dedupeByDay(applyFilter(compositeHistory));
   const isEmpty = filteredResults.length === 0;
 
@@ -250,16 +259,21 @@ export default function AnalysisReports() {
       const d = getLocalDayStr(r.submittedAt || r.timestamp);
       if (!d) return;
       if (!byDay[d]) byDay[d] = { p: null, c: null };
-      if (r.submittedByRole === 'patient' || r.submittedByRole === 'user') byDay[d].p = r;
-      else if (r.submittedByRole === 'caregiver') byDay[d].c = r;
+      
+      const role = r.submittedByRole === 'caregiver' ? 'c' : 'p';
+      const existing = byDay[d][role];
+      if (!existing || new Date(r.submittedAt || r.timestamp) > new Date(existing.submittedAt || existing.timestamp)) {
+        if (r.submittedByRole === 'patient' || r.submittedByRole === 'user') byDay[d].p = r;
+        else if (r.submittedByRole === 'caregiver') byDay[d].c = r;
+      }
     });
 
-    const daysWithBoth = Object.keys(byDay).filter(d => byDay[d].p && byDay[d].c).sort().reverse();
+    const allDays = Object.keys(byDay).sort().reverse();
 
-    if (!daysWithBoth.length) {
+    if (!allDays.length) {
       return (
         <div className="text-center py-6 mt-4">
-          <p className="text-sm font-bold text-slate-400">No hay días con ambas evaluaciones para comparar el detalle.</p>
+          <p className="text-sm font-bold text-slate-400">No hay evaluaciones para comparar en este período.</p>
         </div>
       );
     }
@@ -267,35 +281,49 @@ export default function AnalysisReports() {
     return (
       <div className="mt-6 space-y-4">
         <h3 className="text-sm font-black uppercase tracking-wider text-slate-500 border-t border-slate-100 dark:border-navy-800 pt-6">Detalle de Diferencias</h3>
-        {daysWithBoth.map(d => {
+        {allDays.map(d => {
           const { p, c } = byDay[d];
-          const pMan = p.scores?.mania ?? p.severity ?? 0;
-          const cMan = c.scores?.mania ?? c.severity ?? 0;
-          const pDep = p.scores?.depression ?? 0;
-          const cDep = c.scores?.depression ?? 0;
-          const pStab = p.stability ?? (pMan - pDep);
-          const cStab = c.stability ?? (cMan - cDep);
+          const pMan = p?.scores?.mania ?? p?.severity ?? 0;
+          const cMan = c?.scores?.mania ?? c?.severity ?? 0;
+          const pDep = p?.scores?.depression ?? 0;
+          const cDep = c?.scores?.depression ?? 0;
+          const pStab = p ? (p.stability ?? (pMan - pDep)) : 0;
+          const cStab = c ? (c.stability ?? (cMan - cDep)) : 0;
 
-          const diffMan = Math.abs(pMan - cMan);
-          const diffDep = Math.abs(pDep - cDep);
-          const isWarning = diffMan >= 2 || diffDep >= 2;
+          const hasBoth = p && c;
+          const diffMan = hasBoth ? Math.abs(pMan - cMan) : 0;
+          const diffDep = hasBoth ? Math.abs(pDep - cDep) : 0;
+          const isWarning = hasBoth && (diffMan >= 2 || diffDep >= 2);
 
           return (
-            <div key={d} className={`p-4 rounded-2xl border-2 ${isWarning ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50' : 'bg-slate-50 dark:bg-navy-900 border-slate-100 dark:border-navy-800'}`}>
+            <div key={d} className={`p-4 rounded-2xl border-2 ${isWarning ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50' : !hasBoth ? 'bg-slate-50/50 dark:bg-navy-900/50 border-dashed border-slate-200 dark:border-navy-800' : 'bg-slate-50 dark:bg-navy-900 border-slate-100 dark:border-navy-800'}`}>
                <div className="flex justify-between items-center mb-3 pb-3 border-b border-slate-200/50 dark:border-navy-800/50">
                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{formatDate(d)}</span>
                  {isWarning && <span className="text-[9px] bg-amber-500 text-white px-2 py-1 rounded-full font-black uppercase flex items-center gap-1"><Alert variant="warning" className="p-0 m-0 border-0 bg-transparent" /> ALTA DISCREPANCIA</span>}
+                 {!hasBoth && <span className="text-[9px] bg-slate-400 text-white px-2 py-1 rounded-full font-black uppercase">Pendiente Otra Parte</span>}
                </div>
                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
+                  <div className={`space-y-1 ${!p ? 'opacity-30' : ''}`}>
                     <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Paciente</p>
-                    <p className="text-xl font-black text-navy-700 dark:text-white leading-none mb-2">{pStab > 0 ? '+' : ''}{pStab.toFixed(1)}</p>
-                    <p className="text-xs text-slate-500 font-bold">M: {pMan.toFixed(1)} | D: {pDep.toFixed(1)}</p>
+                    {p ? (
+                      <>
+                        <p className="text-xl font-black text-navy-700 dark:text-white leading-none mb-2">{pStab > 0 ? '+' : ''}{pStab.toFixed(1)}</p>
+                        <p className="text-xs text-slate-500 font-bold">M: {pMan.toFixed(1)} | D: {pDep.toFixed(1)}</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Sin datos</p>
+                    )}
                   </div>
-                  <div className="space-y-1">
+                  <div className={`space-y-1 ${!c ? 'opacity-30' : ''}`}>
                     <p className="text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest">Cuidador</p>
-                    <p className="text-xl font-black text-navy-700 dark:text-white leading-none mb-2">{cStab > 0 ? '+' : ''}{cStab.toFixed(1)}</p>
-                    <p className="text-xs text-slate-500 font-bold">M: {cMan.toFixed(1)} | D: {cDep.toFixed(1)}</p>
+                    {c ? (
+                      <>
+                        <p className="text-xl font-black text-navy-700 dark:text-white leading-none mb-2">{cStab > 0 ? '+' : ''}{cStab.toFixed(1)}</p>
+                        <p className="text-xs text-slate-500 font-bold">M: {cMan.toFixed(1)} | D: {cDep.toFixed(1)}</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Sin datos</p>
+                    )}
                   </div>
                </div>
             </div>
@@ -368,17 +396,28 @@ export default function AnalysisReports() {
                  </div>
                  <div className="bg-slate-50 dark:bg-navy-900 p-4 rounded-2xl text-center border border-slate-100 dark:border-navy-800">
                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Punto de Equilibrio</p>
-                   <p className={`text-4xl font-black ${Math.abs(avgStability) < 1 ? 'text-emerald-500' : avgStability > 0 ? 'text-rose-500' : 'text-blue-500'}`}>
-                     {avgStability > 0 ? '+' : ''}{avgStability.toFixed(1)}
-                   </p>
+                    <p className={`text-4xl font-black ${
+                      Math.abs(avgStability) <= 2
+                        ? (avgStability > 0 ? 'text-rose-300' : avgStability < 0 ? 'text-blue-300' : 'text-emerald-300')
+                        : (avgStability > 0 ? 'text-rose-500' : 'text-blue-500')
+                    }`}>
+                      {avgStability > 0 ? '+' : ''}{avgStability.toFixed(1)}
+                    </p>
                    <p className="text-[10px] text-slate-400">{label}</p>
                  </div>
                  <div className="bg-slate-50 dark:bg-navy-900 p-4 rounded-2xl flex flex-col justify-center items-center border border-slate-100 dark:border-navy-800">
                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Estado General</p>
                    <div className="flex gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className={`w-3 h-6 rounded-full ${i < Math.abs(avgStability) ? (avgStability > 0 ? 'bg-rose-500' : 'bg-blue-500') : 'bg-slate-200'}`} />
-                      ))}
+                       {[...Array(5)].map((_, i) => {
+                         const absS = Math.abs(avgStability);
+                         const isActive = i < absS;
+                         let dotColor = 'bg-slate-200';
+                         if (isActive) {
+                           if (avgStability > 0) dotColor = absS <= 2 ? 'bg-rose-200' : 'bg-rose-500';
+                           else dotColor = absS <= 2 ? 'bg-blue-200' : 'bg-blue-500';
+                         }
+                         return <div key={i} className={`w-3 h-6 rounded-full ${dotColor}`} />;
+                       })}
                    </div>
                  </div>
               </div>
@@ -397,13 +436,13 @@ export default function AnalysisReports() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold"><span>MANÍA</span><span>{m.toFixed(1)} / 5</span></div>
                           <div className="w-full bg-slate-200 dark:bg-navy-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-rose-500 h-full" style={{ width: `${m/5*100}%` }} />
+                            <div className={`h-full ${m <= 2 ? 'bg-rose-200' : 'bg-rose-500'}`} style={{ width: `${m/5*100}%` }} />
                           </div>
                         </div>
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold"><span>DEPRESIÓN</span><span>{d.toFixed(1)} / 5</span></div>
                           <div className="w-full bg-slate-200 dark:bg-navy-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-blue-500 h-full" style={{ width: `${d/5*100}%` }} />
+                            <div className={`h-full ${d <= 2 ? 'bg-blue-200' : 'bg-blue-500'}`} style={{ width: `${d/5*100}%` }} />
                           </div>
                         </div>
                       </div>
@@ -438,14 +477,22 @@ export default function AnalysisReports() {
               return (
                 <div key={r._id || i} className="border border-slate-100 dark:border-navy-800 rounded-xl overflow-hidden">
                   <div className="p-3 bg-slate-50 dark:bg-navy-900 flex items-center gap-3 cursor-pointer" onClick={() => setExpandedRow(isExpanded ? null : r._id)}>
-                    <span className="text-[10px] font-bold text-slate-400 w-16">{formatDate(r.submittedAt || r.timestamp)}</span>
-                    <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${Math.abs(stab) < 1 ? 'bg-emerald-100 text-emerald-700' : stab > 0 ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {Math.abs(stab) < 1 ? 'Estable' : stab > 0 ? 'Fase Manía' : 'Fase Depre'}
+                    <span className="text-[10px] font-bold text-slate-400 w-24">{formatDateTime(r.submittedAt || r.timestamp)}</span>
+                    <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase shadow-sm ${
+                      Math.abs(stab) <= 2 
+                        ? (stab > 0 ? 'bg-rose-50 text-rose-400 border border-rose-100' : stab < 0 ? 'bg-blue-50 text-blue-400 border border-blue-100' : 'bg-emerald-50 text-emerald-400 border border-emerald-100')
+                        : (stab > 2 ? 'bg-rose-500 text-white shadow-rose-200' : 'bg-blue-500 text-white shadow-blue-200')
+                    }`}>
+                      {Math.abs(stab) < 1 ? 'Estable' : Math.abs(stab) <= 2 ? (stab > 0 ? 'Elevación Leve' : 'Baja Leve') : (stab > 0 ? '¡ALERTA MANÍA!' : '¡ALERTA DEPRE!')}
                     </div>
                     <div className="ml-auto flex items-center gap-4">
                        <div className="text-right">
                          <p className="text-[8px] font-bold text-slate-400 uppercase">Estabilidad</p>
-                         <p className={`font-black text-xs ${stab > 0 ? 'text-rose-500' : stab < 0 ? 'text-blue-500' : 'text-emerald-500'}`}>{stab > 0 ? '+' : ''}{stab.toFixed(1)}</p>
+                         <p className={`font-black text-xs ${
+                           Math.abs(stab) <= 2 
+                             ? (stab > 0 ? 'text-rose-300' : stab < 0 ? 'text-blue-300' : 'text-emerald-300')
+                             : (stab > 0 ? 'text-rose-600 font-black' : 'text-blue-600 font-black')
+                         }`}>{stab > 0 ? '+' : ''}{stab.toFixed(1)}</p>
                        </div>
                        <button onClick={(e) => { e.stopPropagation(); handleDeleteSingle(r._id); }} className="p-1 text-slate-300 hover:text-rose-500"><Trash2 size={14} /></button>
                        {isExpanded ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
